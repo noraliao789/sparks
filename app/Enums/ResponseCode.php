@@ -8,38 +8,38 @@ use BenSampo\Enum\Enum;
 
 final class ResponseCode extends Enum
 {
-    /** 成功 */
     const int Success = 20000;
-
-    /** 驗證失敗 */
     const int ValidateFailed = 42201;
-
-    /** 未授權（未登入 / Token 無效） */
     const int      Unauthorized = 40101;
-
     const int      TokenRequired = 40102;
-
     const int      TokenNotFound = 40103;
-
     const int      TokenInvalid = 40104;
-
     const int      TokenExpired = 40105;
-
-    /** 權限不足 */
     const int Forbidden = 40301;
-
-    /** 資源不存在 */
     const int NotFound = 40401;
-
-    /** 請求衝突（重複資料等） */
     const int Conflict = 40901;
-
-    /** 請求錯誤（參數或流程錯誤） */
     const int BadRequest = 40001;
-
-    /** 系統例外 / 未預期錯誤 */
     const int ErrorException = 50000;
-
-    /** 第三方服務錯誤 */
     const int ThirdPartyServiceError = 50201;
+
+    //中文
+    public static function getDescription($value): string
+    {
+        return match ($value) {
+            self::Success => '成功',
+            self::ValidateFailed => '驗證失敗',
+            self::Unauthorized => '未授權',
+            self::TokenRequired => 'Token 是必需的',
+            self::TokenNotFound => '找不到 Token',
+            self::TokenInvalid => 'Token 無效',
+            self::TokenExpired => 'Token 已過期',
+            self::Forbidden => '權限不足',
+            self::NotFound => '資源不存在',
+            self::Conflict => '請求衝突',
+            self::BadRequest => '請求錯誤',
+            self::ErrorException => '系統例外',
+            self::ThirdPartyServiceError => '第三方服務錯誤',
+            default => parent::getDescription($value),
+        };
+    }
 }
