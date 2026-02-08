@@ -19,17 +19,17 @@ class LineController extends Controller
 {
     public function redirectUrl(): \Illuminate\Http\JsonResponse
     {
-        $state = Str::random(40);
-        Cache::put("line_oauth_state:{$state}", 1, now()->addMinutes(10));
+        $state = Str::random (40);
+        Cache::put ("line_oauth_state:{$state}", 1, now ()->addMinutes (10));
 
-        $url = Socialite::driver('line')
-            ->stateless()
-            ->with(['state' => $state])
-            ->redirectUrl(config('services.line.redirect'))
-            ->redirect()
-            ->getTargetUrl();
+        $url = Socialite::driver ('line')
+            ->stateless ()
+            ->with (['state' => $state])
+            ->redirectUrl (config ('services.line.redirect'))
+            ->redirect ()
+            ->getTargetUrl ();
 
-        return returnSuccess(['url' => $url]);
+        return returnSuccess (['url' => $url]);
     }
 
     /**
@@ -37,92 +37,91 @@ class LineController extends Controller
      */
     final public function handleCallback(Request $request, AuthService $service)
     {
-        $state = (string) request()->query('state', '');
-        if (! Cache::pull("line_oauth_state:{$state}")) {
-            returnError(ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
+        $state = (string)request ()->query ('state', '');
+        if ( ! Cache::pull ("line_oauth_state:{$state}")){
+            returnError (ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
         }
         try {
-            $providerUser = Socialite::driver('line')->stateless()->user();
+            $providerUser = Socialite::driver ('line')->stateless ()->user ();
         } catch (\Throwable $e) {
-            returnError(
+            returnError (
                 \App\Enums\ResponseCode::ThirdPartyServiceError,
                 'Line OAuth failed',
                 422,
             );
         }
 
-        $providerId = $providerUser->getId();
-        $email = $providerUser->getEmail();
-        $name = $providerUser->getName() ?: 'LINE User';
-        $avatar = $providerUser->getAvatar();
+        $providerId = $providerUser->getId ();
+        $email      = $providerUser->getEmail ();
+        $name       = $providerUser->getName () ?: 'LINE User';
+        $avatar     = $providerUser->getAvatar ();
 
-        $social = SocialAccount::where('provider', 'line')
-            ->where('provider_user_id', $providerId)
-            ->first();
+        $social = SocialAccount::where ('provider', 'line')
+            ->where ('provider_user_id', $providerId)
+            ->first ();
 
-        if ($social) {
+        if ($social){
             $user = $social->user;
         } else {
             $user = null;
-            if ($email) {
-                $user = User::where('email', $email)->first();
+            if ($email){
+                $user = User::where ('email', $email)->first ();
             }
 
-            if (! $user) {
-                $user = User::create([
-                    'name' => $name,
-                    'email' => $email ?? ('line_'.$providerId.'@example.local'),
-                    'password' => Hash::make(Str::random(32)),
+            if ( ! $user){
+                $user = User::create ([
+                    'name'     => $name,
+                    'email'    => $email ?? ('line_' . $providerId . '@example.local'),
+                    'password' => Hash::make (Str::random (32)),
                 ]);
             }
 
-            SocialAccount::create([
-                'user_id' => $user->id,
-                'provider' => 'line',
+            SocialAccount::create ([
+                'user_id'          => $user->id,
+                'provider'         => 'line',
                 'provider_user_id' => $providerId,
-                'email' => $email,
-                'name' => $name,
-                'avatar' => $avatar,
+                'email'            => $email,
+                'name'             => $name,
+                'avatar'           => $avatar,
             ]);
         }
 
-        $clientType = get_user_agent();
+        $clientType = get_user_agent ();
 
-        $plainToken = $user->createToken(
+        $plainToken = $user->createToken (
             name     : "bearer:{$clientType}",
             abilities: ['*'],
         )->plainTextToken;
 
-        TokenSupport::onLoginIssued($user, $clientType, $plainToken);
+        TokenSupport::onLoginIssued ($user, $clientType, $plainToken);
 
-        return returnSuccess([
+        return returnSuccess ([
             'token' => $plainToken,
-            'user' => $user,
+            'user'  => $user,
         ]);
 
     }
 
     /**
      * 綁定:已登入狀態下，產生 LINE 授權 URL（state 帶 link_code）
-     *
-     * @param  Request  $request  The incoming HTTP request instance.
+     * @param Request $request The incoming HTTP request instance.
      * @return \Illuminate\Http\JsonResponse A JSON response with the generated LINE authorization URL.
      */
-    final public function linkRedirect(Request $request)
+    final public function linkRedirect()
     {
-        $user = $request->user();
+        $userId = \Auth::id ();
 
-        $linkCode = Str::random(40);
-        Cache::put("line_link:{$linkCode}", $user->id, now()->addMinutes(5));
+        $linkCode = Str::random (40);
+        Cache::put ("line_link:{$linkCode}", $userId, now ()->addMinutes (5));
 
-        $url = Socialite::driver('line')
-            ->stateless()
-            ->with(['state' => $linkCode])
-            ->redirectUrl(config('services.line.bind_redirect'))
-            ->redirect()
-            ->getTargetUrl();
+        $url = Socialite::driver ('line')
+            ->stateless ()
+            ->with (['state' => $linkCode])
+            ->redirectUrl (config ('services.line.bind_redirect'))
+            ->redirect ()
+            ->getTargetUrl ();
 
-        return returnSuccess(['url' => $url]);
+        return returnSuccess (['url' => $url]);
     }
 
     /**
@@ -133,32 +132,32 @@ class LineController extends Controller
      */
     public function linkCallback(Request $request)
     {
-        $state = (string) $request->query('state', '');
-        $userId = Cache::pull("line_link:{$state}");
+        $state  = (string)$request->query ('state', '');
+        $userId = Cache::pull ("line_link:{$state}");
 
-        if (! $userId) {
+        if ( ! $userId){
             // state 過期或不存在
-            returnError(ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
+            returnError (ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
         }
 
-        $providerUser = Socialite::driver('line')
-            ->stateless()
-            ->redirectUrl(config('services.line.bind_redirect'))
-            ->user();
+        $providerUser = Socialite::driver ('line')
+            ->stateless ()
+            ->redirectUrl (config ('services.line.bind_redirect'))
+            ->user ();
 
-        $providerUserId = $providerUser->getId();
+        $providerUserId = $providerUser->getId ();
 
-        SocialAccount::updateOrCreate(
+        SocialAccount::updateOrCreate (
             [
-                'provider' => 'line',
+                'provider'         => 'line',
                 'provider_user_id' => $providerUserId,
             ],
             [
                 'user_id' => $userId,
-                'name' => $providerUser->getName(),
-                'avatar' => $providerUser->getAvatar(),
+                'name'    => $providerUser->getName (),
+                'avatar'  => $providerUser->getAvatar (),
             ],
         );
-    return returnSuccess();
+        return returnSuccess ();
     }
 }

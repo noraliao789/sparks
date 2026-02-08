@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name')->nullable()->comment('使用者顯示名稱');
             $table->string('email')->nullable()->unique()->comment('使用者 Email，可能為空');
             $table->timestamp('email_verified_at')->nullable()->comment('Email 驗證時間');
+            $table->timestamp('line_verified_at')->nullable()->comment('Line 驗證時間');
             $table->string('password')->nullable()->comment('密碼（社群登入可能為空）');
             $table->string('avatar')->nullable()->comment('使用者頭像網址');
             $table->timestamp('last_login_at')->nullable()->comment('最後一次登入時間');

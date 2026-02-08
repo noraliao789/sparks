@@ -19,7 +19,4 @@ class SocialAccount extends Model
         'raw',
     ];
 
-    protected $casts = [
-        'raw' => 'array',
-    ];
 }

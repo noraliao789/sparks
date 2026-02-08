@@ -10,6 +10,7 @@ use App\Services\LinePushService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Random\RandomException;
 
@@ -36,31 +37,27 @@ class VerificationController extends Controller
      * @throws RequestException
      * @throws ApiException
      */
-    public function sendOtp(Request $request, LinePushService $line)
+    public function sendOtp(LinePushService $line)
     {
-        $user = $request->user();
+        $user = Auth::id();
 
-        // 1) 必須先綁定 LINE userId
         $lineSocial = SocialAccount::query()
             ->where('user_id', $user->id)
             ->where('provider', 'line')
             ->first();
 
-        if (! $lineSocial || ! $lineSocial->line_user_id) {
+        if (! $lineSocial || ! $lineSocial->provider_user_id) {
             returnError(ResponseCode::ValidateFailed, 'LINE is not bound yet', 422);
         }
 
-        // 2) 已認證就不需要再發
         if (! is_null($user->line_verified_at)) {
             return returnSuccess(['sent' => false, 'message' => 'Already verified']);
         }
 
-        // 3) 產生 OTP + 存 5 分鐘
         $otp = (string) random_int(100000, 999999);
         Cache::put("otp:line_verify:{$user->id}", password_hash($otp, PASSWORD_BCRYPT), now()->addMinutes(5));
 
-        // 4) 推播到 LINE
-        $line->pushText($lineSocial->line_user_id, "你的驗證碼：{$otp}（5分鐘內有效）");
+        $line->pushText($lineSocial->provider_user_id, "你的驗證碼：{$otp}（5分鐘內有效）");
 
         return returnSuccess(['sent' => true]);
     }

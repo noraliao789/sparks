@@ -25,6 +25,7 @@ class GoogleController extends Controller
 
     /**
      * @throws ApiException
+     * @throws \JsonException
      */
     final public function handleCallback(): \Illuminate\Http\JsonResponse
     {
@@ -64,6 +65,7 @@ class GoogleController extends Controller
                 'email' => $providerUser->getEmail(),
                 'name' => $providerUser->getName(),
                 'avatar' => $providerUser->getAvatar(),
+                'raw' => json_encode ($providerUser, JSON_THROW_ON_ERROR),
             ]);
         }
 

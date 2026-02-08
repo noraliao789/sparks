@@ -15,7 +15,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('provider')->comment('社群平台名稱，例如 google、line');
             $table->string('provider_user_id')->comment('社群平台的使用者唯一 ID');
-            $table->string('line_user_id', 64)->nullable()->comment('LINE Messaging userId for pushing OTP');
             $table->string('email')->nullable()->comment('社群帳號 Email');
             $table->string('name')->nullable()->comment('社群帳號顯示名稱');
             $table->string('nickname')->nullable()->comment('社群帳號暱稱');

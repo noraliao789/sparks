@@ -17,6 +17,7 @@ class User extends Authenticatable
         'password',
         'avatar',
         'email_verified_at',
+        'line_verified_at',
     ];
 
     protected $hidden = [
@@ -26,6 +27,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'line_verified_at' => 'datetime',
     ];
 
     public function socialAccounts()
