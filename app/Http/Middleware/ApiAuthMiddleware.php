@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 class ApiAuthMiddleware
 {
     /**
-     * @throws \JsonException
      * @throws \Exception
      */
     public function handle(Request $request, Closure $next): Response
@@ -24,7 +23,6 @@ class ApiAuthMiddleware
         }
 
         $user = TokenSupport::resolveUser($token);
-
         Auth::setUser($user);
 
         return $next($request);

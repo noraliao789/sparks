@@ -14,7 +14,10 @@ use BenSampo\Enum\Enum;
 final class RedisTtl extends Enum
 {
     const int AUTH_TOKEN = 60 * 60 * 24 * 7;
-    const int AUTH_USER  = 60 * 60 * 24 * 7;
+
+    const int AUTH_USER = 60 * 60 * 24 * 7;
+
     const int TOKEN_LOCK = 86400;
-    const int USER_INFO  = 60 * 60 * 24;
+
+    const int USER_INFO = 60 * 60 * 24;
 }

@@ -18,5 +18,4 @@ class SocialAccount extends Model
         'avatar',
         'raw',
     ];
-
 }
