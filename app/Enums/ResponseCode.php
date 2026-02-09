@@ -22,7 +22,6 @@ final class ResponseCode extends Enum
     const int ErrorException = 50000;
     const int ThirdPartyServiceError = 50201;
 
-    //中文
     public static function getDescription($value): string
     {
         return match ($value) {
