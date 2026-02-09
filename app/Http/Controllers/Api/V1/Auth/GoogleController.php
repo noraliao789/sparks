@@ -36,7 +36,7 @@ class GoogleController extends Controller
         } catch (\Throwable $e) {
             returnError(
                 \App\Enums\ResponseCode::ThirdPartyServiceError,
-                'Google OAuth failed',
+                $e->getMessage(),
                 422,
             );
         }
@@ -50,7 +50,7 @@ class GoogleController extends Controller
         } else {
             $user = User::where('email', $providerUser->getEmail())->first();
 
-            if (! $user) {
+            if (!$user) {
                 $user = User::create([
                     'name' => $providerUser->getName(),
                     'email' => $providerUser->getEmail(),
@@ -65,7 +65,7 @@ class GoogleController extends Controller
                 'email' => $providerUser->getEmail(),
                 'name' => $providerUser->getName(),
                 'avatar' => $providerUser->getAvatar(),
-                'raw' => json_encode($providerUser, JSON_THROW_ON_ERROR),
+                'raw' => json_encode($providerUser->user, JSON_THROW_ON_ERROR),
             ]);
         }
 
@@ -77,13 +77,11 @@ class GoogleController extends Controller
         )->plainTextToken;
 
         TokenSupport::onLoginIssued($user, $clientType, $plainToken);
+        [$tokenId, $token] = explode('|', $plainToken);
 
         return returnSuccess([
-            'token' => $plainToken,
-            'token_type' => 'Bearer',
-            'expires_in' => 60 * 60 * 24 * 7,
+            'token' => $token,
             'user' => $user,
         ]);
-
     }
 }

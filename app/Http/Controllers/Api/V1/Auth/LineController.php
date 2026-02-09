@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\AuthService;
 use App\Supports\TokenSupport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -34,12 +35,17 @@ class LineController extends Controller
 
     /**
      * @throws ApiException
+     * @throws \Exception
      */
-    final public function handleCallback(Request $request, AuthService $service)
+    final public function handleCallback(AuthService $service)
     {
-        $state = (string) request()->query('state', '');
-        if (! Cache::pull("line_oauth_state:{$state}")) {
-            returnError(ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
+        $state = (string)request()->query('state', '');
+        if (!Cache::pull("line_oauth_state:{$state}")) {
+            returnError(
+                ResponseCode::ThirdPartyServiceError,
+                'Invalid state',
+                422,
+            );
         }
         try {
             $providerUser = Socialite::driver('line')->stateless()->user();
@@ -68,10 +74,10 @@ class LineController extends Controller
                 $user = User::where('email', $email)->first();
             }
 
-            if (! $user) {
+            if (!$user) {
                 $user = User::create([
                     'name' => $name,
-                    'email' => $email ?? ('line_'.$providerId.'@example.local'),
+                    'email' => $email ?? ('line_' . $providerId . '@example.local'),
                     'password' => Hash::make(Str::random(32)),
                 ]);
             }
@@ -83,6 +89,7 @@ class LineController extends Controller
                 'email' => $email,
                 'name' => $name,
                 'avatar' => $avatar,
+                'raw' => json_encode($providerUser->user, JSON_UNESCAPED_UNICODE),
             ]);
         }
 
@@ -92,25 +99,25 @@ class LineController extends Controller
             name: "bearer:{$clientType}",
             abilities: ['*'],
         )->plainTextToken;
+        [$tokenId, $token] = explode('|', $plainToken);
 
         TokenSupport::onLoginIssued($user, $clientType, $plainToken);
-
+        Cache::forget("line_oauth_state:{$state}");
         return returnSuccess([
-            'token' => $plainToken,
+            'token' => $token,
             'user' => $user,
         ]);
-
     }
 
     /**
      * 綁定:已登入狀態下，產生 LINE 授權 URL（state 帶 link_code）
      *
-     * @param  Request  $request  The incoming HTTP request instance.
+     * @param Request $request The incoming HTTP request instance.
      * @return \Illuminate\Http\JsonResponse A JSON response with the generated LINE authorization URL.
      */
     final public function linkRedirect()
     {
-        $userId = \Auth::id();
+        $userId = Auth::id();
 
         $linkCode = Str::random(40);
         Cache::put("line_link:{$linkCode}", $userId, now()->addMinutes(5));
@@ -128,17 +135,17 @@ class LineController extends Controller
     /**
      * 綁定: LINE callback：用 state 找到 user_id，把 LINE provider 綁到user
      *
-     * @param  Request  $request  The incoming HTTP request containing the state and authentication data.
-     * @return \Illuminate\Http\RedirectResponse A redirect response to a success or error page.
+     * @param Request $request The incoming HTTP request containing the state and authentication data.
+     * @return \Illuminate\Http\JsonResponse A redirect response to a success or error page.
      *
      * @throws ApiException
      */
     public function linkCallback(Request $request)
     {
-        $state = (string) $request->query('state', '');
+        $state = (string)$request->query('state', '');
         $userId = Cache::pull("line_link:{$state}");
 
-        if (! $userId) {
+        if (!$userId) {
             // state 過期或不存在
             returnError(ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
         }

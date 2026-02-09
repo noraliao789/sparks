@@ -27,7 +27,6 @@ class LineBindController extends Controller
             ->first();
 
         if (! $social) {
-            // 代表此 user 沒有用 LINE login 過，或你尚未建立 provider=line 的紀錄
             returnError(ResponseCode::ValidateFailed, 'LINE social account not found for this user', 422);
         }
 

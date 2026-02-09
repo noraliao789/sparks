@@ -3,12 +3,12 @@
 use App\Enums\ResponseCode;
 use App\Exceptions\ApiException;
 
-if (! function_exists('returnError')) {
+if (!function_exists('returnError')) {
     /**
      * @throws ApiException
      */
     function returnError(
-        ResponseCode|int $code = ResponseCode::ErrorException,
+        mixed $code = ResponseCode::ErrorException,
         string $message = '',
         int $statusCode = 400,
         array $errors = []
@@ -17,11 +17,11 @@ if (! function_exists('returnError')) {
     }
 }
 
-if (! function_exists('returnSuccess')) {
+if (!function_exists('returnSuccess')) {
     function returnSuccess($params = [], $headers = []): \Illuminate\Http\JsonResponse
     {
         $data = ['code' => ResponseCode::Success];
-        if (! empty($params)) {
+        if (!empty($params)) {
             $data['data'] = $params;
         }
 
@@ -36,13 +36,7 @@ if (! function_exists('returnSuccess')) {
         );
     }
 }
-if (! function_exists('get_user_agent')) {
-    /**
-     * 獲取使用者代理類型（app 或 web）
-     *
-     * 請求 header 中讀取 user_agent（或 User-Agent），
-     * 若包含常見行動設備關鍵字則回傳 'app'，否則回傳 'web'。
-     */
+if (!function_exists('get_user_agent')) {
     function get_user_agent(): string
     {
         $ua = '';
@@ -55,10 +49,11 @@ if (! function_exists('get_user_agent')) {
         }
         $uaLower = strtolower($ua);
         $mobileTokens = [
-            'android', 'ios',
+            'android',
+            'ios',
         ];
 
-        if (array_any($mobileTokens, fn ($token) => $token !== '' && str_contains($uaLower, $token))) {
+        if (array_any($mobileTokens, fn($token) => $token !== '' && str_contains($uaLower, $token))) {
             return 'app';
         }
 

@@ -19,8 +19,7 @@ Route::prefix('v1')->group(function () {
         Route::get('line/link/callback', [LineController::class, 'linkCallback']);
     });
     Route::middleware('api.auth')->group(function () {
-        Route::get('me/verification', [VerificationController::class, 'status']);
-        Route::post('me/line/bind', [LineBindController::class, 'bind']);
+        Route::post('me/verification', [VerificationController::class, 'status']);
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
     });

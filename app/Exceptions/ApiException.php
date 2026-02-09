@@ -8,13 +8,11 @@ use Exception;
 class ApiException extends Exception
 {
     public readonly int $httpStatus;
-
-    public readonly ResponseCode $apiCode;
-
+    public readonly int $apiCode;
     public readonly array $errors;
 
     public function __construct(
-        ResponseCode|int $apiCode = ResponseCode::ErrorException,
+        int $apiCode = ResponseCode::ErrorException,
         string $message = '',
         int $httpStatus = 400,
         array $errors = []
@@ -23,6 +21,6 @@ class ApiException extends Exception
         $this->httpStatus = $httpStatus;
         $this->errors = $errors;
 
-        parent::__construct($message, $apiCode->value);
+        parent::__construct($message, $apiCode);
     }
 }
