@@ -18,4 +18,9 @@ class SocialAccount extends Model
         'avatar',
         'raw',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

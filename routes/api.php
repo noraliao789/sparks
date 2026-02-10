@@ -22,9 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::post('me/verification', [VerificationController::class, 'status']);
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
-
-        Route::post('events/{event}/join', [\App\Http\Controllers\Api\V1\EventJoinController::class, 'join']);
-        Route::post('events/{event}/messages', [\App\Http\Controllers\Api\V1\EventChatController::class, 'send']);
-
+        Route::post('events/join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
+        Route::post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
     });
 });

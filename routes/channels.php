@@ -1,8 +1,9 @@
 <?php
 
+use App\Models\Event;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('event.{eventId}', static function ($user, $eventId) {
+Broadcast::channel('private-event.{eventId}', static function ($user, $eventId) {
     $event = Event::query()->find($eventId);
     if (!$event) {
         return false;

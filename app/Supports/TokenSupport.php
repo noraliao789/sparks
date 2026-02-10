@@ -18,16 +18,16 @@ class TokenSupport
     ): void {
         $clientType = self::normalizeClientType($clientType);
         $newHash = self::hashToken($plainToken);
-        $idKey = self::idKey((int) $user->id, $clientType);
+        $idKey = self::idKey((int)$user->id, $clientType);
 
         $oldHash = Redis::get($idKey);
-        if (! empty($oldHash) && (string) $oldHash !== $newHash) {
-            self::revokeByHash((string) $oldHash, $idKey);
+        if (!empty($oldHash) && (string)$oldHash !== $newHash) {
+            self::revokeByHash((string)$oldHash, $idKey);
         }
 
         self::cacheTokenByHash($newHash, $user, $clientType);
 
-        PersonalAccessToken::where('tokenable_id', (int) $user->id)
+        PersonalAccessToken::where('tokenable_id', (int)$user->id)
             ->where('tokenable_type', User::class)
             ->whereJsonContains('abilities', $clientType)
             ->where('token', '!=', $newHash)
@@ -38,47 +38,46 @@ class TokenSupport
      * Middleware 用：解析 Bearer plain token -> User
      * Redis -> Sanctum -> 回填 Redis
      *
-     * @throws \Exception
+     * @throws
      */
     public static function resolveUser(string $plainToken): User
     {
         $hash = self::hashToken($plainToken);
-
         $info = self::getInfoByHash($hash);
-        if ($info && ! empty($info['id']) && ! empty($info['client_type']) && ! empty($info['model'])) {
+        if ($info && !empty($info['id']) && !empty($info['client_type']) && !empty($info['model'])) {
             $user = self::unserializeUser($info['model']);
 
-            if (! $user) {
-                self::revokeByHash($hash, self::idKey((int) $info['id'], (string) $info['client_type']));
-                throw new \Exception('', ResponseCode::TokenNotFound);
+            if (!$user) {
+                self::revokeByHash($hash, self::idKey((int)$info['id'], (string)$info['client_type']));
+                returnError(ResponseCode::TokenNotFound, 'user info is not complete', 401);
             }
 
-            self::touchByHash($hash, (int) $info['id'], (string) $info['client_type']);
+            self::touchByHash($hash, (int)$info['id'], (string)$info['client_type']);
 
             return $user;
         }
 
         $pat = PersonalAccessToken::findToken($plainToken);
-        if (! $pat) {
-            throw new \Exception('', ResponseCode::TokenNotFound);
+        if (!$pat) {
+            returnError(ResponseCode::TokenNotFound, 'Token not found', 401);
         }
 
         $user = $pat->tokenable;
-        if (! $user instanceof User) {
-            throw new \Exception('', ResponseCode::TokenNotFound);
+        if (!$user instanceof User) {
+            returnError(ResponseCode::TokenNotFound, 'user model is not complete', 401);
         }
 
         $clientType = self::resolveClientType($pat);
 
-        $idKey = self::idKey((int) $user->id, $clientType);
+        $idKey = self::idKey((int)$user->id, $clientType);
         $currentHash = Redis::get($idKey);
 
-        if (! empty($currentHash) && (string) $currentHash !== $hash) {
-            throw new \Exception('', ResponseCode::TokenNotFound);
+        if (!empty($currentHash) && (string)$currentHash !== $hash) {
+            returnError(ResponseCode::TokenNotFound, 'token error', 401);
         }
 
         self::cacheTokenByHash($hash, $user, $clientType);
-        self::touchByHash($hash, (int) $user->id, $clientType);
+        self::touchByHash($hash, (int)$user->id, $clientType);
 
         return $user;
     }
@@ -92,7 +91,7 @@ class TokenSupport
         $idKey = self::idKey($userId, self::normalizeClientType($clientType));
 
         $currentHash = Redis::get($idKey);
-        if (! empty($currentHash) && (string) $currentHash === $hash) {
+        if (!empty($currentHash) && (string)$currentHash === $hash) {
             self::revokeByHash($hash, $idKey);
 
             return;
@@ -123,17 +122,17 @@ class TokenSupport
 
     private static function tokenKey(string $hash): string
     {
-        return RedisKey::AUTH_USER_TOKEN.$hash;
+        return RedisKey::AUTH_USER_TOKEN . $hash;
     }
 
     private static function idKey(int $userId, string $clientType): string
     {
-        return RedisKey::AUTH_USER_ID."{$userId}:{$clientType}";
+        return RedisKey::AUTH_USER_ID . "{$userId}:{$clientType}";
     }
 
     private static function lockKey(string $hash): string
     {
-        return RedisKey::LOCK_TOKEN_CHECK.$hash;
+        return RedisKey::LOCK_TOKEN_CHECK . $hash;
     }
 
     private static function getInfoByHash(string $hash): ?array
@@ -146,7 +145,7 @@ class TokenSupport
     private static function resolveClientType(PersonalAccessToken $token): string
     {
         $abilities = $token->abilities ?? [];
-        $clientType = (string) ($abilities[0] ?? 'app');
+        $clientType = (string)($abilities[0] ?? 'app');
 
         return self::normalizeClientType($clientType);
     }
@@ -154,10 +153,10 @@ class TokenSupport
     private static function cacheTokenByHash(string $hash, User $user, string $clientType): void
     {
         $tokenKey = self::tokenKey($hash);
-        $idKey = self::idKey((int) $user->id, $clientType);
+        $idKey = self::idKey((int)$user->id, $clientType);
 
         $userInfo = [
-            'id' => (string) $user->id,
+            'id' => (string)$user->id,
             'client_type' => $clientType,
             'model' => serialize($user),
         ];
@@ -204,7 +203,7 @@ class TokenSupport
 
     private static function unserializeUser(?string $serialized): ?User
     {
-        if (! $serialized) {
+        if (!$serialized) {
             return null;
         }
 

@@ -10,6 +10,8 @@ final class ResponseCode extends Enum
 {
     const int Success = 20000;
     const int ValidateFailed = 42201;
+    const int RequestValidationNotSet = 42202;
+
     const int      Unauthorized = 40101;
     const int      TokenRequired = 40102;
     const int      TokenNotFound = 40103;
@@ -27,6 +29,7 @@ final class ResponseCode extends Enum
         return match ($value) {
             self::Success => '成功',
             self::ValidateFailed => '驗證失敗',
+            self::RequestValidationNotSet => '請求驗證未設定',
             self::Unauthorized => '未授權',
             self::TokenRequired => 'Token 是必需的',
             self::TokenNotFound => '找不到 Token',
