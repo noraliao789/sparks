@@ -2,9 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\GoogleController;
 use App\Http\Controllers\Api\V1\Auth\LineController;
-use App\Http\Controllers\Api\V1\Me\LineBindController;
 use App\Http\Controllers\Api\V1\Me\VerificationController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -24,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
         Route::post('events/join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
-        Route::post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
+//        Route::post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
     });
+    Route::middleware(['api.auth', 'throttle:chat-send'])->post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
 });

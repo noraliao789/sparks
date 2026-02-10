@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -12,6 +13,8 @@ class EventMessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public string $connection = 'redis';
+    public string $queue = 'broadcast';
     /**
      * Create a new event instance.
      */
@@ -25,14 +28,14 @@ class EventMessageSent implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return PrivateChannel[]
+     * @return Channel
      */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [new PrivateChannel("event.{$this->eventId}")];
+        return new PrivateChannel("event.{$this->eventId}");
     }
 
-    public function broadcastAs(): string
+    public function broadcastAs()
     {
         return 'message.sent';
     }

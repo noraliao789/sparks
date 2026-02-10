@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->string('title');
             $table->text('description')->nullable();
             $table->unsignedInteger('num')->default(1)->comment('活動人數');
-            $table->unsignedInteger('start_time');
-            $table->unsignedInteger('end_time')->nullable();
+            $table->unsignedInteger('start_time')->nullable()->comment('活動開始時間');
+            $table->unsignedInteger('end_time')->nullable()->comment('活動結束時間');
             $table->unsignedInteger('creator_by');
             $table->timestamps();
         });
