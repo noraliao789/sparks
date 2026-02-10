@@ -27,7 +27,6 @@ class EventController extends Controller
     public function send(EventRequest $request)
     {
         $request = $request->validated();
-        $event = \App\Models\Event::query()->find($request['id']);
         $user = Auth::user();
         $payload = [
             'user' => [
@@ -38,7 +37,7 @@ class EventController extends Controller
             'sent_at' => time(),
         ];
 
-        broadcast(new EventMessageSent($event->id, $payload))->toOthers();
+        broadcast(new EventMessageSent($request['id'], $payload));
 
         return returnSuccess([
             'sent' => true,

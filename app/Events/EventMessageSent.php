@@ -25,11 +25,11 @@ class EventMessageSent implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return PrivateChannel
+     * @return PrivateChannel[]
      */
-    public function broadcastOn(): PrivateChannel
+    public function broadcastOn(): array
     {
-        return new PrivateChannel("event.{$this->eventId}");
+        return [new PrivateChannel("event.{$this->eventId}")];
     }
 
     public function broadcastAs(): string

@@ -116,6 +116,7 @@ class Handler extends ExceptionHandler
             ], $exception->getStatusCode());
         }
 
+
         /**
          *  未預期錯誤（500）
          */

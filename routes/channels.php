@@ -3,7 +3,11 @@
 use App\Models\Event;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('private-event.{eventId}', static function ($user, $eventId) {
+Broadcast::channel('event.{eventId}', static function ($user, $eventId) {
+    \Log::info('Channel auth check', [
+        'user_id' => $user?->id,
+        'event_id' => $eventId,
+    ]);
     $event = Event::query()->find($eventId);
     if (!$event) {
         return false;
