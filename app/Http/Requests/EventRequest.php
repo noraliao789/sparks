@@ -19,7 +19,7 @@ class EventRequest extends BaseRequest
         return match ($this->route()->getActionMethod()) {
             "send" => [
                 'id' => 'required|exists:events,id',
-                'text' => 'required|string|max:1000',
+                'text' => 'required|array',
             ],
             "join" => [
                 'id' => 'required|exists:events,id',

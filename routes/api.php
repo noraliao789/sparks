@@ -22,7 +22,9 @@ Route::prefix('v1')->group(function () {
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
         Route::post('events/join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
-//        Route::post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
     });
-    Route::middleware(['api.auth', 'throttle:chat-send'])->post('events/messages', [\App\Http\Controllers\Api\V1\EventController::class, 'send']);
+    Route::middleware(['api.auth', 'throttle:chat-send'])->post(
+        'events/messages',
+        [\App\Http\Controllers\Api\V1\EventController::class, 'send']
+    );
 });

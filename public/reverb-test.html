@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Reverb Private Channel Test</title>
+</head>
+<body>
+<h3>Reverb Private Channel Test</h3>
+
+<p>Bearer Token:</p>
+<input id="token" style="width: 600px" placeholder="paste bearer token here" />
+<button id="connect">Connect</button>
+
+<pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/pusher-js@7.2.0/dist/web/pusher.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.0/dist/echo.iife.js"></script>
+
+<script>
+    const log = (m) => document.getElementById('log').textContent += m + "\n";
+
+    document.getElementById('connect').onclick = () => {
+        const token = document.getElementById('token').value.trim();
+        if (!token) return log("[error] token required");
+
+        const echo = new Echo({
+            broadcaster: 'pusher',
+            key: 'dbanplfnrni8spn8im4o',
+            wsHost: 'local-sparks.com',
+            wsPort: 8080,
+            wssPort: 8080,
+            forceTLS: false,
+            enabledTransports: ['ws'],
+
+            authEndpoint: 'http://local-sparks.com:8080/broadcasting/auth',
+            auth: {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                }
+            }
+        });
+
+        log("[init] echo created");
+
+        echo.private('event.1')
+            .subscribed(() => log("[subscribed] private-event.1"))
+            .listen('.message.sent', (e) => log("[message.sent] " + JSON.stringify(e)))
+            .error((e) => log("[channel error] " + JSON.stringify(e)));
+    };
+</script>
+</body>
+</html>

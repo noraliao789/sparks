@@ -13,8 +13,6 @@ class EventMessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public string $connection = 'redis';
-    public string $queue = 'broadcast';
     /**
      * Create a new event instance.
      */
@@ -38,5 +36,13 @@ class EventMessageSent implements ShouldBroadcast
     public function broadcastAs()
     {
         return 'message.sent';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'eventId' => $this->eventId,
+            'message' => $this->message,
+        ];
     }
 }

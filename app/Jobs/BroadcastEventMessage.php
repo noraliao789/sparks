@@ -14,7 +14,9 @@ class BroadcastEventMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public int $messageId) {}
+    public function __construct(public int $messageId)
+    {
+    }
 
     public function handle(): void
     {
@@ -29,8 +31,9 @@ class BroadcastEventMessage implements ShouldQueue
             'user' => [
                 'id' => $message->user->id,
                 'name' => $message->user->name,
+                'avatar' => $message->user->avatar,
             ],
-            'sent_at' => $message->created_at,
+            't' => $message->created_at,
         ];
 
         broadcast(new EventMessageSent($message->event_id, $payload));

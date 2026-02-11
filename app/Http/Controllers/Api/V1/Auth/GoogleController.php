@@ -70,7 +70,11 @@ class GoogleController extends Controller
         }
 
         $clientType = get_user_agent();
-
+        $user->update([
+            'avatar' => $providerUser->getAvatar(),
+            'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
+        ]);
         $plainToken = $user->createToken(
             name: "bearer:{$clientType}",
             abilities: ['*'],

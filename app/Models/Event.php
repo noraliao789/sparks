@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
+    public $timestamps = false;
     protected $fillable = [
         'theme_id',
         'pay_id',
@@ -17,6 +18,8 @@ class Event extends Model
         'start_time',
         'end_time',
         'creator_by',
+        'created_at',
+        'updated_at',
     ];
 
     public function participants(): BelongsToMany

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -22,7 +21,8 @@ return new class extends Migration
             $table->json('raw')->nullable()->comment('社群平台返回的原始使用者資料');
             $table->unique(['provider', 'provider_user_id'], 'provider_user_unique');
             $table->index(['provider', 'email']);
-            $table->timestamps();
+            $table->unsignedInteger('created_at')->nullable()->comment('活動建立時間戳');
+            $table->unsignedInteger('updated_at')->nullable()->comment('活動更新時間戳');
         });
     }
 

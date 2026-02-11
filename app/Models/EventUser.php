@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventUser extends Model
 {
-    protected $fillable = ['event_id', 'user_id'];
+    public $timestamps = false;
+    protected $fillable = ['event_id', 'user_id', 'created_at'];
 
     public function events()
     {

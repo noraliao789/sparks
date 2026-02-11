@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SocialAccount extends Model
 {
+    public $timestamps = false;
     protected $table = 'social_accounts';
 
     protected $fillable = [
@@ -17,6 +18,8 @@ class SocialAccount extends Model
         'nickname',
         'avatar',
         'raw',
+        'created_at',
+        'updated_at',
     ];
 
     public function user()

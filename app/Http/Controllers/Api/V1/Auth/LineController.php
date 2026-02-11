@@ -99,6 +99,11 @@ class LineController extends Controller
             name: "bearer:{$clientType}",
             abilities: ['*'],
         )->plainTextToken;
+        $user->update([
+            'avatar' => $providerUser->getAvatar(),
+            'last_login_at' => now(),
+            'last_login_ip' => request()->ip(),
+        ]);
         [$tokenId, $token] = explode('|', $plainToken);
 
         TokenSupport::onLoginIssued($user, $clientType, $plainToken);

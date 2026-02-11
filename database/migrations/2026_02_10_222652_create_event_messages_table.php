@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->text('text');
             $table->unsignedInteger('created_at')->default(0)->comment('訊息建立時間戳');
             $table->unsignedInteger('deleted_at')->nullable()->comment('訊息刪除時間戳');
-            $table->index(['event_id', 'id']);          // 拉歷史訊息
-            $table->index(['event_id', 'created_at']);  // 排序
+            $table->index(['event_id', 'id']);
+            $table->index(['event_id', 'created_at']);
         });
     }
 
