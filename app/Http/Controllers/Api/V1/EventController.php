@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\RedisKey;
 use App\Enums\RedisTtl;
-use App\Enums\SignupStatus;
+use App\Enums\EventApplyStatus;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Jobs\BroadcastEventMessage;
 use App\Models\EventMessage;
-use App\Models\EventSignup;
+use App\Models\EventApply;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 
@@ -35,7 +35,7 @@ class EventController extends Controller
             'theme_id' => $request['theme_id'],
             'pay_id' => $request['pay_id'],
             'title' => $request['title'],
-            'description' => $request['description'] ?? '',
+            'description' => $request['description'] ?? null,
             'start_time' => $request['start_time'],
             'end_time' => $request['end_time'],
             'num' => $request['num'],
@@ -52,16 +52,16 @@ class EventController extends Controller
     /**
      * @throws ApiException
      */
-    public function signup(EventRequest $request)
+    public function apply(EventRequest $request)
     {
         $data = $request->validated();
         $uid = Auth::id();
         $event = \App\Models\Event::query()->find($data['id']);
 
-        EventSignup::query()->create([
+        EventApply::query()->create([
             'event_id' => $event->id,
             'user_id' => $uid,
-            'status' => SignupStatus::PENDING,
+            'status' => EventApplyStatus::PENDING,
             'message' => $data['message'] ?? null,
             'created_at' => time(),
             'updated_at' => time(),

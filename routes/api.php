@@ -26,7 +26,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('events')->group(function () {
             Route::post('index', [\App\Http\Controllers\Api\V1\EventController::class, 'index']);
             Route::post('create', [\App\Http\Controllers\Api\V1\EventController::class, 'create']);
-            Route::post('signup', [\App\Http\Controllers\Api\V1\EventController::class, 'signup']);
+            Route::post('apply', [\App\Http\Controllers\Api\V1\EventController::class, 'apply']);
             Route::post('join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
         });
     });

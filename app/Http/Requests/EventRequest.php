@@ -3,9 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Enums\ResponseCode;
-use App\Enums\SignupStatus;
+use App\Enums\EventApplyStatus;
 use App\Exceptions\ApiException;
-use App\Models\EventSignup;
+use App\Models\EventApply;
 use Illuminate\Support\Facades\Auth;
 
 class EventRequest extends BaseRequest
@@ -32,7 +32,7 @@ class EventRequest extends BaseRequest
                 'end_time' => 'required|integer|gt:start_time',
                 'num' => 'required|integer|min:1',
             ],
-            "signup" => [
+            "apply" => [
                 'id' => 'required|exists:events,id',
                 'message' => 'required|string|max:50',
                 'unlock_photo' => 'required|in:0,1',
@@ -71,10 +71,10 @@ class EventRequest extends BaseRequest
             if (!$event->invitedUsers()->where('users.id', $user->id)->exists()) {
                 returnError(\App\Enums\ResponseCode::Forbidden, 'Not invited', 403);
             }
-            $ok = \App\Models\EventSignup::query()
+            $ok = \App\Models\EventApply::query()
                 ->where('event_id', $id)
                 ->where('user_id', $user->id)
-                ->where('status', SignupStatus::APPROVED)
+                ->where('status', EventApplyStatus::APPROVED)
                 ->exists();
 
             if (!$ok) {
@@ -91,25 +91,25 @@ class EventRequest extends BaseRequest
                 returnError(\App\Enums\ResponseCode::ValidateFailed, 'Event ended', 422);
             }
         }
-        if ($method === 'signup') {
+        if ($method === 'apply') {
             // 活動已結束不可報名
             if ((int)$event->end_time <= time()) {
                 returnError(\App\Enums\ResponseCode::EventEnded, 'Event ended', 422);
             }
             // 防重複報名
-            $exists = EventSignup::query()
+            $exists = EventApply::query()
                 ->where('event_id', $id)
                 ->where('user_id', $user->id)
                 ->first();
             if ($exists) {
                 returnError(\App\Enums\ResponseCode::EventAlreadyApplied, 'Already applied', 422);
             }
-            $count = EventSignup::query()
+            $count = EventApply::query()
                 ->where('event_id', $event->id)
-                ->where('status', SignupStatus::APPROVED)
+                ->where('status', EventApplyStatus::APPROVED)
                 ->count();
             if ($event->num && $count >= (int)$event->num) {
-                returnError(\App\Enums\ResponseCode::EventSignupIsFull, 'Event is full', 422);
+                returnError(\App\Enums\ResponseCode::EventApplyIsFull, 'Event is full', 422);
             }
         }
         return true;

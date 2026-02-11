@@ -38,8 +38,8 @@ class Event extends Model
         return $this->invitedUsers()->exists();
     }
 
-    public function signups()
+    public function applies()
     {
-        return $this->hasMany(\App\Models\EventSignup::class);
+        return $this->hasMany(\App\Models\EventApply::class);
     }
 }

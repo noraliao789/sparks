@@ -10,7 +10,7 @@ use BenSampo\Enum\Enum;
  * @method static static OptionTwo()
  * @method static static OptionThree()
  */
-final class SignupStatus extends Enum
+final class EventApplyStatus extends Enum
 {
     const int PENDING = 0;
     const int APPROVED = 1;
