@@ -14,8 +14,10 @@ Route::prefix('v1')->group(function () {
         // Link LINE Login：需要 token（會員中心綁定登入方式）
         Route::middleware('api.auth')->group(function () {
             Route::get('line/link/redirect', [LineController::class, 'linkRedirect']);
+            Route::get('google/link/redirect', [GoogleController::class, 'linkRedirect']);
         });
         Route::get('line/link/callback', [LineController::class, 'linkCallback']);
+        Route::get('google/link/callback', [GoogleController::class, 'linkCallback']);
     });
     Route::middleware('api.auth')->group(function () {
         Route::post('me/verification', [VerificationController::class, 'status']);

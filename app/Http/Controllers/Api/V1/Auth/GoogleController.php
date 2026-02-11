@@ -2,21 +2,64 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\ResponseCode;
+use App\Enums\SocialProvider;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
-use App\Models\SocialAccount;
-use App\Models\User;
-use App\Supports\TokenSupport;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Services\SocialAuthService;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
 {
     public function redirectUrl()
     {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+
+        return returnSuccess(['url' => $url]);
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function handleCallback(SocialAuthService $service)
+    {
+        try {
+            $providerUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Throwable $e) {
+            returnError(ResponseCode::ThirdPartyServiceError, 'Google OAuth failed', 422);
+        }
+
+        $clientType = get_user_agent();
+
+        $result = $service->login(
+            SocialProvider::Google,
+            (string)$providerUser->getId(),
+            $providerUser->getEmail(),
+            $providerUser->getName(),
+            $providerUser->getAvatar(),
+            (array)($providerUser->user ?? []),
+            $clientType,
+        );
+
+        return returnSuccess($result);
+    }
+
+    /**
+     * 綁定：已登入狀態下，產生 Google 授權 URL（state 帶 link_code）
+     */
+    public function linkRedirect()
+    {
+        $userId = Auth::id();
+
+        $linkCode = Str::random(40);
+        Cache::put("google_link:{$linkCode}", $userId, now()->addMinutes(5));
+
+        // ⚠️ 你要在 config/services.php 補一個 google.bind_redirect
         $url = Socialite::driver('google')
             ->stateless()
+            ->with(['state' => $linkCode])
+            ->redirectUrl(config('services.google.bind_redirect'))
             ->redirect()
             ->getTargetUrl();
 
@@ -24,68 +67,37 @@ class GoogleController extends Controller
     }
 
     /**
+     * 綁定 callback：用 state 找到 user_id，把 Google provider 綁到 user（禁止轉綁）
      * @throws ApiException
-     * @throws \JsonException
      */
-    final public function handleCallback(): \Illuminate\Http\JsonResponse
+    public function linkCallback(SocialAuthService $service)
     {
+        $state = (string)request()->query('state', '');
+        $userId = Cache::pull("google_link:{$state}");
+
+        if (!$userId) {
+            returnError(ResponseCode::ThirdPartyServiceError, 'Invalid state', 422);
+        }
+
         try {
             $providerUser = Socialite::driver('google')
                 ->stateless()
+                ->redirectUrl(config('services.google.bind_redirect'))
                 ->user();
-        } catch (\Throwable $e) {
-            returnError(
-                \App\Enums\ResponseCode::ThirdPartyServiceError,
-                $e->getMessage(),
-                422,
-            );
+        } catch (\Throwable) {
+            returnError(ResponseCode::ThirdPartyServiceError, 'Google OAuth failed', 422);
         }
 
-        $social = SocialAccount::where('provider', 'google')
-            ->where('provider_user_id', $providerUser->getId())
-            ->first();
+        $service->link(
+            userId: (int)$userId,
+            provider: SocialProvider::Google,
+            providerUserId: (string)$providerUser->getId(),
+            email: $providerUser->getEmail(),
+            name: $providerUser->getName(),
+            avatar: $providerUser->getAvatar(),
+            rawUser: (array)($providerUser->user ?? []),
+        );
 
-        if ($social) {
-            $user = $social->user;
-        } else {
-            $user = User::where('email', $providerUser->getEmail())->first();
-
-            if (!$user) {
-                $user = User::create([
-                    'name' => $providerUser->getName(),
-                    'email' => $providerUser->getEmail(),
-                    'password' => Hash::make(Str::random(32)),
-                ]);
-            }
-
-            SocialAccount::create([
-                'user_id' => $user->id,
-                'provider' => 'google',
-                'provider_user_id' => $providerUser->getId(),
-                'email' => $providerUser->getEmail(),
-                'name' => $providerUser->getName(),
-                'avatar' => $providerUser->getAvatar(),
-                'raw' => json_encode($providerUser->user, JSON_THROW_ON_ERROR),
-            ]);
-        }
-
-        $clientType = get_user_agent();
-        $user->update([
-            'avatar' => $providerUser->getAvatar(),
-            'last_login_at' => now(),
-            'last_login_ip' => request()->ip(),
-        ]);
-        $plainToken = $user->createToken(
-            name: "bearer:{$clientType}",
-            abilities: ['*'],
-        )->plainTextToken;
-
-        TokenSupport::onLoginIssued($user, $clientType, $plainToken);
-        [$tokenId, $token] = explode('|', $plainToken);
-
-        return returnSuccess([
-            'token' => $token,
-            'user' => $user,
-        ]);
+        return returnSuccess();
     }
 }

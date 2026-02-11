@@ -38,6 +38,7 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'bind_redirect' => env('GOOGLE_BIND_REDIRECT_URI'),
     ],
     'line' => [
         'client_id' => env('LINE_CLIENT_ID'),
