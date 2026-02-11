@@ -40,4 +40,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SocialAccount::class);
     }
+
+    public function eventSignups()
+    {
+        return $this->hasMany(\App\Models\EventSignup::class);
+    }
 }

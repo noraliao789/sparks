@@ -11,6 +11,10 @@ final class ResponseCode extends Enum
     const int Success = 20000;
     const int ValidateFailed = 42201;
     const int RequestValidationNotSet = 42202;
+    const int EventSignupIsFull = 42203;
+    const int EventEnded = 42204;
+    const int EventAlreadyApplied = 42205;
+
 
     const int      Unauthorized = 40101;
     const int      TokenRequired = 40102;
@@ -41,6 +45,7 @@ final class ResponseCode extends Enum
             self::BadRequest => '請求錯誤',
             self::ErrorException => '系統例外',
             self::ThirdPartyServiceError => '第三方服務錯誤',
+            self::EventSignupIsFull => '活動報名已滿',
             default => parent::getDescription($value),
         };
     }

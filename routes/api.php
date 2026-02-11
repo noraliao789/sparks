@@ -23,7 +23,12 @@ Route::prefix('v1')->group(function () {
         Route::post('me/verification', [VerificationController::class, 'status']);
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
-        Route::post('events/join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
+        Route::prefix('events')->group(function () {
+            Route::post('index', [\App\Http\Controllers\Api\V1\EventController::class, 'index']);
+            Route::post('create', [\App\Http\Controllers\Api\V1\EventController::class, 'create']);
+            Route::post('signup', [\App\Http\Controllers\Api\V1\EventController::class, 'signup']);
+            Route::post('join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
+        });
     });
     Route::middleware(['api.auth', 'throttle:chat-send'])->post(
         'events/messages',

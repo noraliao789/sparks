@@ -37,4 +37,9 @@ class Event extends Model
     {
         return $this->invitedUsers()->exists();
     }
+
+    public function signups()
+    {
+        return $this->hasMany(\App\Models\EventSignup::class);
+    }
 }

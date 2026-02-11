@@ -4,17 +4,29 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\RedisKey;
 use App\Enums\RedisTtl;
+use App\Enums\SignupStatus;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Jobs\BroadcastEventMessage;
 use App\Models\EventMessage;
+use App\Models\EventSignup;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 
 class EventController extends Controller
 {
-    //create
+    public function index(EventRequest $request)
+    {
+        $request = $request->validated();
+        $events = \App\Models\Event::query()
+            ->select(['id', 'theme_id', 'pay_id', 'title', 'description', 'start_time', 'end_time', 'num'])
+            ->where('end_time', '>', time())
+            ->orderBy('created_at', 'desc')
+            ->paginate($request['limit'], ['*'], 'page', $request['page']);
+        return returnSuccess($events);
+    }
+
     public function create(EventRequest $request)
     {
         $request = $request->validated();
@@ -34,6 +46,27 @@ class EventController extends Controller
         $key = RedisKey::EVENT_PARTICIPANTS . $event->id;
         Redis::sadd($key, (string)$uid);
         Redis::expire($key, RedisTtl::EVENT_PARTICIPANTS);
+        return returnSuccess();
+    }
+
+    /**
+     * @throws ApiException
+     */
+    public function signup(EventRequest $request)
+    {
+        $data = $request->validated();
+        $uid = Auth::id();
+        $event = \App\Models\Event::query()->find($data['id']);
+
+        EventSignup::query()->create([
+            'event_id' => $event->id,
+            'user_id' => $uid,
+            'status' => SignupStatus::PENDING,
+            'message' => $data['message'] ?? null,
+            'created_at' => time(),
+            'updated_at' => time(),
+        ]);
+
         return returnSuccess();
     }
 
