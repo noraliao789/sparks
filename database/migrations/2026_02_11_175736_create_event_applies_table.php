@@ -20,9 +20,9 @@ return new class extends Migration {
             $table->unsignedTinyInteger('status')->default('0')->comment('0: 申請中, 1: 已通過, 2: 已拒絕, 3: 已取消');
             $table->unsignedInteger('created_at')->nullable();
             $table->unsignedInteger('updated_at')->nullable();
-            $table->unique(['event_id', 'user_id']);
             $table->index(['event_id', 'status']);
             $table->index(['user_id', 'status']);
+            $table->unique(['event_id', 'user_id'], 'event_applies_event_user_unique');
         });
     }
 
