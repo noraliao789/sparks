@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\EventApplyStatus;
 use App\Enums\RedisKey;
 use App\Enums\RedisTtl;
-use App\Enums\EventApplyStatus;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Jobs\BroadcastEventMessage;
-use App\Models\EventMessage;
 use App\Models\EventApply;
+use App\Models\EventMessage;
+use App\Services\EventApplyService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 
@@ -71,6 +72,41 @@ class EventController extends Controller
     }
 
     /**
+     * @throws \Throwable
+     */
+    public function approveApply(EventRequest $request, EventApplyService $service)
+    {
+        $data = $request->validated();
+        $service->approve($data);
+        return returnSuccess(['approved' => true]);
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function rejectApply(EventRequest $request, EventApplyService $service)
+    {
+        $data = $request->validated();
+        $service->reject($data);
+
+        return returnSuccess(['rejected' => true]);
+    }
+
+    public function my()
+    {
+        $uid = Auth::id();
+        $events = \App\Models\Event::query()
+            ->whereHas('invitedUsers', function ($query) use ($uid) {
+                $query->where('event_users.user_id', $uid);
+            })
+            ->select(['id', 'theme_id', 'pay_id', 'title', 'description', 'start_time', 'end_time', 'num'])
+            ->where('end_time', '>', time())
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return returnSuccess($events);
+    }
+
+    /**
      * @throws ApiException
      */
     public function join(EventRequest $request)
@@ -97,7 +133,7 @@ class EventController extends Controller
         $message = EventMessage::create([
             'event_id' => $request['id'],
             'user_id' => $user->id,
-            'text' => json_encode($request['text']),
+            'text' => $request['text'],
             'created_at' => time(),
         ]);
         BroadcastEventMessage::dispatch($message->id)->onQueue('broadcast');

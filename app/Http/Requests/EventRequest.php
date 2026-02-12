@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\ResponseCode;
 use App\Enums\EventApplyStatus;
 use App\Exceptions\ApiException;
+use App\Models\Event;
 use App\Models\EventApply;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,6 +37,15 @@ class EventRequest extends BaseRequest
                 'id' => 'required|exists:events,id',
                 'message' => 'required|string|max:50',
                 'unlock_photo' => 'required|in:0,1',
+            ],
+            'approveApply' => [
+                'apply_id' => 'required|exists:event_applies,id',
+                'id' => 'required|exists:events,id',
+            ],
+            'rejectApply' => [
+                'apply_id' => 'required|exists:event_applies,id',
+                'id' => 'required|exists:events,id',
+                'reason' => 'string|max:50',
             ],
             "send" => [
                 'id' => 'required|exists:events,id',
@@ -110,6 +120,49 @@ class EventRequest extends BaseRequest
                 ->count();
             if ($event->num && $count >= (int)$event->num) {
                 returnError(\App\Enums\ResponseCode::EventApplyIsFull, 'Event is full', 422);
+            }
+        }
+        if ($method === 'approveApply') {
+            if ($event->creator_by !== $user->id) {
+                returnError(\App\Enums\ResponseCode::Forbidden, 'Forbidden', 403);
+            }
+
+            if ($event->end_time <= time()) {
+                returnError(\App\Enums\ResponseCode::EventEnded, 'Event ended', 422);
+            }
+            $applyId = $this->input('apply_id');
+            $apply = EventApply::query()
+                ->where('id', $applyId)
+                ->where('event_id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$apply) {
+                returnError(\App\Enums\ResponseCode::NotFound, 'Apply not found', 404);
+            }
+
+            if ($apply->status !== (int)EventApplyStatus::PENDING) {
+                returnError(\App\Enums\ResponseCode::EventApplyStatusInvalid, 'Apply status invalid', 422);
+            }
+        }
+        if ($method === 'rejectApply') {
+            if ((int)$event->creator_by !== $user->id) {
+                returnError(\App\Enums\ResponseCode::Forbidden, 'Forbidden', 403);
+            }
+            $applyId = $this->input('apply_id');
+
+            $apply = EventApply::query()
+                ->where('id', $applyId)
+                ->where('event_id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$apply) {
+                returnError(\App\Enums\ResponseCode::NotFound, 'Apply not found', 404);
+            }
+
+            if ((int)$apply->status !== (int)EventApplyStatus::PENDING) {
+                returnError(\App\Enums\ResponseCode::EventApplyStatusInvalid, 'Apply status invalid', 422);
             }
         }
         return true;

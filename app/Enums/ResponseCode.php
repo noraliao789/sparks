@@ -14,6 +14,7 @@ final class ResponseCode extends Enum
     const int EventApplyIsFull = 42203;
     const int EventEnded = 42204;
     const int EventAlreadyApplied = 42205;
+    const int EventApplyStatusInvalid = 42206;
 
 
     const int      Unauthorized = 40101;

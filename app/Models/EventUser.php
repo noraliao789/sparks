@@ -11,6 +11,6 @@ class EventUser extends Model
 
     public function events()
     {
-        return $this->belongsToMany(\App\Models\Event::class, 'event_user')->withTimestamps();
+        return $this->belongsToMany(\App\Models\Event::class, 'event_users', 'event_id', 'event_id')->withTimestamps();
     }
 }

@@ -16,6 +16,6 @@ final class RedisTtl extends Enum
     const int AUTH_TOKEN = 60 * 60 * 24 * 2;
     const int AUTH_USER = 60 * 60 * 24 * 2;
     const int TOKEN_LOCK = 86400;
-    const int EVENT_PARTICIPANTS = 60 * 60 * 24;
+    const int EVENT_PARTICIPANTS = 60 * 60 * 24 * 7;
 
 }

@@ -13,6 +13,10 @@ class EventMessage extends Model
         'text',
         'created_at',
     ];
+    protected $casts = [
+        'created_at' => 'integer',
+        'text' => 'array',
+    ];
 
     public function user()
     {

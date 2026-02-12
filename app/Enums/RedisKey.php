@@ -13,4 +13,5 @@ final class RedisKey extends Enum
     const string LOCK_TOKEN_CHECK = 'lock:token:check:';
     const string USER_INFO = 'user:info:';
     const string EVENT_PARTICIPANTS = 'event:participants:';
+    const string EVENT_BASIC = 'event:basic:';
 }

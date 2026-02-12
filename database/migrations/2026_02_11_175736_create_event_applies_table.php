@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id');
             $table->string('message', 200)->nullable();
+            $table->string('reason', 200)->nullable()->comment('拒絕理由');
             $table->unsignedTinyInteger('unlock_photo')->default(0)->comment('0: 不解鎖, 1: 解鎖');
             $table->unsignedTinyInteger('status')->default('0')->comment('0: 申請中, 1: 已通過, 2: 已拒絕, 3: 已取消');
             $table->unsignedInteger('created_at')->nullable();

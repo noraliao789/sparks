@@ -12,6 +12,7 @@ class EventApply extends Model
         'event_id',
         'user_id',
         'message',
+        'reason',
         'unlock_photo',
         'status',
         'created_at',

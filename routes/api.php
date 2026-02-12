@@ -20,14 +20,19 @@ Route::prefix('v1')->group(function () {
         Route::get('google/link/callback', [GoogleController::class, 'linkCallback']);
     });
     Route::middleware('api.auth')->group(function () {
-        Route::post('me/verification', [VerificationController::class, 'status']);
+        Route::post('me/verification/line', [VerificationController::class, 'lineStatus']);
         Route::post('me/verification/otp/send', [VerificationController::class, 'sendOtp']);
         Route::post('me/verification/otp/verify', [VerificationController::class, 'verifyOtp']);
+        Route::post('me/channels', [\App\Http\Controllers\Api\V1\Me\MeController::class, 'channels']);
+
         Route::prefix('events')->group(function () {
             Route::post('index', [\App\Http\Controllers\Api\V1\EventController::class, 'index']);
             Route::post('create', [\App\Http\Controllers\Api\V1\EventController::class, 'create']);
             Route::post('apply', [\App\Http\Controllers\Api\V1\EventController::class, 'apply']);
             Route::post('join', [\App\Http\Controllers\Api\V1\EventController::class, 'join']);
+            Route::post('my', [\App\Http\Controllers\Api\V1\EventController::class, 'my']);
+            Route::post('approveApply', [\App\Http\Controllers\Api\V1\EventController::class, 'approveApply']);
+            Route::post('rejectApply', [\App\Http\Controllers\Api\V1\EventController::class, 'rejectApply']);
         });
     });
     Route::middleware(['api.auth', 'throttle:chat-send'])->post(

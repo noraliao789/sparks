@@ -24,13 +24,13 @@ class Event extends Model
 
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Models\User::class, 'event_user')->withTimestamps();
+        return $this->belongsToMany(\App\Models\User::class, 'event_users')->withTimestamps();
     }
 
     // 被邀請的使用者
     public function invitedUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'event_user', 'event_id', 'user_id');
+        return $this->belongsToMany(User::class, 'event_users', 'event_id', 'user_id');
     }
 
     public function is_private(): bool

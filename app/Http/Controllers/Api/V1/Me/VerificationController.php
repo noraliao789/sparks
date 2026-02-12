@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Enums\ResponseCode;
+use App\Enums\SocialProvider;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Models\SocialAccount;
@@ -17,13 +18,12 @@ use Random\RandomException;
 
 class VerificationController extends Controller
 {
-    public function status()
+    public function lineStatus()
     {
         $userId = Auth::id();
-
         $lineSocial = SocialAccount::query()
             ->where('user_id', $userId)
-            ->where('provider', 'line')
+            ->where('provider', SocialProvider::Line)
             ->first();
         $user = User::find($userId);
 
@@ -89,7 +89,6 @@ class VerificationController extends Controller
 
         return returnSuccess([
             'verified' => true,
-            // return a formatted datetime string for the client
             'verified_at' => $user->line_verified_at?->toDateTimeString(),
         ]);
     }
