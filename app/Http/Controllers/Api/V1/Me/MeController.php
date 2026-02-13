@@ -20,7 +20,7 @@ class MeController extends Controller
             ->pluck('event_users.event_id')
             ->toArray();
         $eventChannels = array_map(
-            fn($id) => "private-event.{$userId}",
+            static fn ($id) => "private-event.{$id}",
             $eventIds
         );
 

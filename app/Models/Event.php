@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
     public $timestamps = false;
+
     protected $fillable = [
         'theme_id',
         'pay_id',
@@ -24,7 +24,7 @@ class Event extends Model
 
     public function participants(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Models\User::class, 'event_users')->withTimestamps();
+        return $this->belongsToMany(\App\Models\User::class, 'event_users')->withPivotValue(['created_at' => time()]);
     }
 
     // 被邀請的使用者

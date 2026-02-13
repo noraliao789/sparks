@@ -25,34 +25,20 @@ class EventController extends Controller
             ->where('end_time', '>', time())
             ->orderBy('created_at', 'desc')
             ->paginate($request['limit'], ['*'], 'page', $request['page']);
+
         return returnSuccess($events);
     }
 
-    public function create(EventRequest $request)
+    /**
+     * @throws \Throwable
+     */
+    public function create(EventRequest $request, EventApplyService $service)
     {
         $request = $request->validated();
-        $uid = Auth::id();
-        $event = \App\Models\Event::query()->create([
-            'theme_id' => $request['theme_id'],
-            'pay_id' => $request['pay_id'],
-            'title' => $request['title'],
-            'description' => $request['description'] ?? null,
-            'start_time' => $request['start_time'],
-            'end_time' => $request['end_time'],
-            'num' => $request['num'],
-            'creator_by' => $uid,
-            'created_at' => time(),
-        ]);
-        $event->participants()->attach($uid);
-        $key = RedisKey::EVENT_PARTICIPANTS . $event->id;
-        Redis::sadd($key, (string)$uid);
-        Redis::expire($key, RedisTtl::EVENT_PARTICIPANTS);
+        $service->create($request);
         return returnSuccess();
     }
 
-    /**
-     * @throws ApiException
-     */
     public function apply(EventRequest $request)
     {
         $data = $request->validated();
@@ -78,6 +64,7 @@ class EventController extends Controller
     {
         $data = $request->validated();
         $service->approve($data);
+
         return returnSuccess(['approved' => true]);
     }
 
@@ -103,6 +90,7 @@ class EventController extends Controller
             ->where('end_time', '>', time())
             ->orderBy('created_at', 'desc')
             ->get();
+
         return returnSuccess($events);
     }
 
@@ -118,6 +106,7 @@ class EventController extends Controller
         $key = RedisKey::EVENT_PARTICIPANTS . $event->id;
         Redis::sadd($key, (string)$uid);
         Redis::expire($key, RedisTtl::EVENT_PARTICIPANTS);
+
         return returnSuccess([
             'joined' => true,
             'event_id' => $event->id,

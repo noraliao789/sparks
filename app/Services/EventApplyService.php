@@ -17,6 +17,31 @@ class EventApplyService
     /**
      * @throws \Throwable
      */
+    final public function create(array $data): void
+    {
+        DB::transaction(static function () use ($data) {
+            $uid = Auth::id();
+            $event = \App\Models\Event::query()->create([
+                'theme_id' => $data['theme_id'],
+                'pay_id' => $data['pay_id'],
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'num' => $data['num'],
+                'creator_by' => $uid,
+                'created_at' => time(),
+            ]);
+            $event->participants()->attach($uid);
+            $key = RedisKey::EVENT_PARTICIPANTS.$event->id;
+            Redis::sadd($key, (string) $uid);
+            Redis::expire($key, RedisTtl::EVENT_PARTICIPANTS);
+        });
+    }
+
+    /**
+     * @throws \Throwable
+     */
     public function approve(array $data): void
     {
         DB::transaction(function () use ($data) {
@@ -29,17 +54,16 @@ class EventApplyService
                 ->lockForUpdate()
                 ->first();
 
-
             $apply->status = EventApplyStatus::APPROVED;
             $apply->updated_at = time();
             $apply->save();
 
-            $targetUserId = (int)$apply->user_id;
+            $targetUserId = (int) $apply->user_id;
             $event = Event::query()->find($eventId);
             $event->participants()->syncWithoutDetaching($targetUserId);
 
-            $key = RedisKey::EVENT_PARTICIPANTS . $event->id;
-            Redis::sadd($key, (string)$targetUserId);
+            $key = RedisKey::EVENT_PARTICIPANTS.$event->id;
+            Redis::sadd($key, (string) $targetUserId);
             Redis::expire($key, RedisTtl::EVENT_PARTICIPANTS);
 
             broadcast(
@@ -47,8 +71,8 @@ class EventApplyService
                     userId: $targetUserId,
                     payload: [
                         'type' => 'event.apply.approved',
-                        'event_id' => (int)$event->id,
-                        'title' => (string)$event->title,
+                        'event_id' => (int) $event->id,
+                        'title' => (string) $event->title,
                         'at' => time(),
                     ]
                 )
@@ -66,11 +90,11 @@ class EventApplyService
             $eventId = $data['id'];
             $actorUserId = Auth::id();
             $event = Event::query()->find($eventId);
-            if (!$event) {
+            if (! $event) {
                 returnError(\App\Enums\ResponseCode::NotFound, 'Event not found', 404);
             }
 
-            if ((int)$event->creator_by !== (int)$actorUserId) {
+            if ((int) $event->creator_by !== (int) $actorUserId) {
                 returnError(\App\Enums\ResponseCode::Forbidden, 'Forbidden', 403);
             }
 
@@ -80,11 +104,11 @@ class EventApplyService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$apply) {
+            if (! $apply) {
                 returnError(\App\Enums\ResponseCode::NotFound, 'Apply not found', 404);
             }
 
-            if ((int)$apply->status !== (int)EventApplyStatus::PENDING) {
+            if ((int) $apply->status !== (int) EventApplyStatus::PENDING) {
                 returnError(\App\Enums\ResponseCode::EventApplyStatusInvalid, 'Apply status invalid', 422);
             }
 
@@ -93,15 +117,15 @@ class EventApplyService
             $apply->updated_at = time();
             $apply->save();
 
-            $targetUserId = (int)$apply->user_id;
+            $targetUserId = (int) $apply->user_id;
 
             broadcast(
                 new UserNotificationCreated(
                     userId: $targetUserId,
                     payload: [
                         'type' => 'event.apply.rejected',
-                        'event_id' => (int)$event->id,
-                        'title' => (string)$event->title,
+                        'event_id' => (int) $event->id,
+                        'title' => (string) $event->title,
                         'reason' => $data['reason'] ?? null,
                         'at' => time(),
                     ]
